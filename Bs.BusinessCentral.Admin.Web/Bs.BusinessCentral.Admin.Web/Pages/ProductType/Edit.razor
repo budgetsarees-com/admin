@@ -1,0 +1,112 @@
+﻿@page "/masters/product-type/create"
+@using Bs.BusinessCentral.Admin.Web.Services.ProductType
+@inject IProductTypeSrv _productTypeService
+@inject NavigationManager _navigationManager
+
+<BsBreadCrumb _breadcrumbItems="@_breadcrumbItems" />
+
+@if (_validationMessage.Length > 0)
+{
+    <div class="alert alert-dark" role="alert">
+        @foreach (string message in _validationMessage)
+        {
+            <p style="margin: 0;">@message</p>
+        }
+    </div>
+}
+
+<EditForm Model="@_productTypeVm" OnValidSubmit="@OnSave">
+    <DataAnnotationsValidator />
+
+    <div class="form-group row mb-2">
+        <label class="col-md-2 col-form-label">Product type</label>
+        <div class="col-md-10">
+            <InputText TValue="string" @bind-Value="_productTypeVm.NameEn" @ref="_itxtName" />
+            <ValidationMessage For="@(() => _productTypeVm.NameEn)" />
+        </div>
+    </div>
+    <div class="mb-5">
+        <Button Color="ButtonColor.Primary" Type="ButtonType.Submit" Loading="_savingInProgress" LoadingText="Saving ...">Save</Button>
+    </div>
+</EditForm>
+
+@code {
+
+    /// <summary>
+    /// Name textbox reference
+    /// </summary>
+    private InputText _itxtName;
+
+    /// <summary>
+    /// Saving in progress status
+    /// </summary>
+    private bool _savingInProgress { get; set; }
+
+    /// <summary>
+    /// Page breadcrumb
+    /// </summary>
+    private List<BreadcrumbItem> _breadcrumbItems { get; set; } = null!;
+
+    /// <summary>
+    /// Product type
+    /// </summary>
+    private ProductTypeVm _productTypeVm { get; set; } = new();
+
+    /// <summary>
+    /// Business validation message
+    /// </summary>
+    private string[] _validationMessage { get; set; } = [];
+
+    /// <summary>
+    /// Page initialized event
+    /// </summary>
+    /// <returns></returns>
+    protected override async Task OnInitializedAsync()
+    {
+        _breadcrumbItems = await GetPageBreamcrumb();
+    }
+
+    /// <summary>
+    /// Set focus on name on page load
+    /// </summary>
+    /// <param name="firstRender"></param>
+    /// <returns></returns>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await _itxtName.Element!.Value.FocusAsync();
+    }
+
+    /// <summary>
+    /// Get page breadcrum
+    /// </summary>
+    /// <returns></returns>
+    private async Task<List<BreadcrumbItem>> GetPageBreamcrumb()
+    {
+        await Task.Delay(0);
+        return new List<BreadcrumbItem>
+        {
+            new BreadcrumbItem{ Text = "Home", Href ="/" },
+            new BreadcrumbItem{ Text = "Product type", Href ="/masters/product-type" },
+            new BreadcrumbItem{ Text = "Create", Href ="/masters/product-type/create", IsCurrentPage = true }
+        };
+    }
+
+    /// <summary>
+    /// Save new
+    /// </summary>
+    /// <returns></returns>
+    protected async Task OnSave()
+    {
+        try
+        {
+            _savingInProgress = true;
+            await _productTypeService.SaveAsync(_productTypeVm);
+            _navigationManager.NavigateTo("/masters/product-type");
+        }
+        catch (BusinessException bex)
+        {
+            _validationMessage = bex.Message;
+            _savingInProgress = false;
+        }
+    }
+}

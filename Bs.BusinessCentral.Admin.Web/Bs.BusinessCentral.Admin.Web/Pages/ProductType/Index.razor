@@ -1,0 +1,112 @@
+﻿@page "/masters/product-type"
+@using Bs.BusinessCentral.Admin.Web.Services.ProductType
+@inject IProductTypeSrv _productTypeService
+
+<BsBreadCrumb _breadcrumbItems="@_breadcrumbItems" />
+<div class="form-group row mb-5">
+    <div class="col-md-12 text-right">
+        <Button Type="ButtonType.Link" Color="ButtonColor.Primary" To="/masters/product-type/create"><Icon Name="IconName.Plus" />Create</Button>
+    </div>
+</div>
+<div class="form-group row mb-2">
+    <div class="col-md-12">
+        <Grid TItem="ProductTypeVm"
+              Class="table table-hover table-bordered table-striped"
+              DataProvider="ProductTypeDataProvider"
+              AllowFiltering="true"
+              AllowPaging="true"
+              AllowSorting="true"
+              AllowSelection="true"
+              SelectionMode="GridSelectionMode.Multiple"
+              PageSize="10"
+              PageSizeSelectorVisible="true"
+              PageSizeSelectorItems="@(new int[] { 10,20,50,100 })"
+              Responsive="true"
+              ItemsPerPageText="Per Page"
+              PaginationItemsTextFormat=""
+              AllowRowClick=true
+              OnRowClick="OnRowClick">
+            <GridColumn TItem="ProductTypeVm" HeaderText="Id" PropertyName="Id">
+                @context.Id
+            </GridColumn>
+            <GridColumn TItem="ProductTypeVm" HeaderText="Name" PropertyName="Name">
+                @context.NameEn
+            </GridColumn>
+            <GridColumn TItem="ProductTypeVm" HeaderText="Last Updated On" PropertyName="LastUpdatedOn">
+                @context.LastUpdatedOn
+            </GridColumn>
+            <GridColumn TItem="ProductTypeVm" Filterable="false" Sortable="false" TextAlignment="Alignment.Center">
+                <ChildContent>
+                    <Button Type="ButtonType.Link" Color="ButtonColor.Secondary" Size="Size.ExtraSmall"><Icon Name="IconName.Pencil" />Edit</Button>
+                </ChildContent>
+            </GridColumn>
+            <GridColumn TItem="ProductTypeVm" Filterable="false" Sortable="false" TextAlignment="Alignment.Center">
+                <ChildContent>
+                    <Button Type="ButtonType.Link" Color="ButtonColor.Danger" Size="Size.ExtraSmall"><Icon Name="IconName.FileMinus" />Delete</Button>
+                </ChildContent>
+            </GridColumn>
+        </Grid>
+    </div>
+</div>
+
+@code {
+
+    /// <summary>
+    /// Page breadcrumb
+    /// </summary>
+    private List<BreadcrumbItem> _breadcrumbItems { get; set; } = null!;
+
+    /// <summary>
+    /// Product type view model
+    /// </summary>
+    private IEnumerable<ProductTypeVm> _productTypeVms { get; set; } = null!;
+
+    /// <summary>
+    /// Product type data provider
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    private async Task<GridDataProviderResult<ProductTypeVm>> ProductTypeDataProvider(GridDataProviderRequest<ProductTypeVm> request)
+    {
+        if (_productTypeVms is null)
+            _productTypeVms = await _productTypeService.GetAsync();
+
+        return await Task.FromResult(request.ApplyTo(_productTypeVms));
+    }
+
+    /// <summary>
+    /// Page initialized event
+    /// </summary>
+    /// <returns></returns>
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        _productTypeVms = await _productTypeService.GetAsync();
+        _breadcrumbItems = await GetPageBreamcrumb();
+    }
+
+    /// <summary>
+    /// Get page breadcrum
+    /// </summary>
+    /// <returns></returns>
+    private async Task<List<BreadcrumbItem>> GetPageBreamcrumb()
+    {
+        await Task.Delay(0);
+        return new List<BreadcrumbItem>
+        {
+            new BreadcrumbItem{ Text = "Home", Href ="/" },
+            new BreadcrumbItem{ Text = "Product type", Href ="/masters/product-type" , IsCurrentPage = true }
+        };
+    }
+
+    /// <summary>
+    /// Grid row click event
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
+    private async Task OnRowClick(GridRowEventArgs<ProductTypeVm> args)
+    {
+        await ModalService.ShowAsync(new ModalOption { Type = ModalType.Primary, Title = "Event: Row Click", Message = $"Id: {args.Item.Id}, Name: {args.Item.NameEn}" });
+    }
+}

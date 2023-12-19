@@ -1,0 +1,126 @@
+﻿@page "/signin"
+@layout EmptyLayout
+@using Bs.BusinessCentral.Admin.Web.Services.AccountService
+@using Bs.BusinessCentral.Admin.Web.Services.SessionService
+@using Bs.BusinessCentral.Admin.Web.ViewModel
+@using Microsoft.AspNetCore.Authorization
+@inject IAccountSrv _accountService
+@inject ISessionSrv _sessionService
+@inject NavigationManager _navigationManager
+@attribute [AllowAnonymous]
+
+<section class="h-100 gradient-form" style="background-color: #eee;">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-xl-10">
+                <div class="card rounded-3 text-black">
+                    <div class="row g-0">
+                        <div class="col-lg-6">
+                            <div class="card-body p-md-5 mx-md-4">
+                                <div class="text-center">
+                                    <h4 class="mt-1 mb-5 pb-1">Welcome to Budget Sarees</h4>
+                                </div>
+                                <EditForm Model="@_signinVm" OnValidSubmit="OnValidSubmit">
+                                    <DataAnnotationsValidator />
+                                    <p>Please login to your account</p>
+                                    <div class="form-group mb-4">
+                                        <InputText @bind-Value="_signinVm.UserName" class="form-control" placeholder="Email or mobile number" />
+                                        <ValidationMessage For="@(() => _signinVm.UserName)" />
+                                    </div>
+                                    <div class="form-group mb-4">
+                                        <InputText @bind-Value="_signinVm.Password" type="password" class="form-control" placeholder="Password" />
+                                        <ValidationMessage For="@(() => _signinVm.Password)" />
+                                    </div>
+                                    @if (_validationMessage.Length > 0)
+                                    {
+                                        <div class="text-center pt-1 pb-1">
+                                            <Alert Color="AlertColor.Danger">
+                                                @foreach (var msg in _validationMessage)
+                                                {
+                                                    <p>@msg</p>
+                                                }
+                                            </Alert>
+                                        </div>
+                                    }
+                                    <div class="text-center pt-1 mb-5 pb-1">
+                                        <button class="btn btn-primary">
+                                            @if (_loadingSignin)
+                                            {
+                                                <span class="spinner-border spinner-border-sm mr-1"></span>
+                                            }
+                                            Login
+                                        </button>
+                                    </div>
+                                    <div class="text-center pt-1 mb-5 pb-1">
+                                        <a class="text-muted" href="#!">Forgot password?</a>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-center pb-4">
+                                        <p class="mb-0 me-2">Don't have an account?</p>
+                                        <a type="button" class="btn btn-outline-danger" href="/signup">Create new</a>
+                                    </div>
+                                </EditForm>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 d-flex align-items-center" style="background-color: #171766;">
+                            <div class="text-white px-3 py-4 p-md-5 mx-md-4">
+                                <h4 class="mb-4">We are more than just a company</h4>
+                                <p class="small mb-0">
+                                    What sets Budget Sarees apart is our commitment to offering value without compromising on quality.
+                                    Each saree in our collection is carefully chosen for its craftsmanship, design, and attention to detail.
+                                </p>
+                                <p class="small mb-0">
+                                    We source our sarees from skilled artisans who take pride in their work, ensuring that you receive a piece of art that you can cherish.
+                                    Shopping with Budget Sarees is a delightful experience where you can explore the latest trends without worrying about your budget.
+                                </p>
+                                <p class="small mb-0">
+                                    Our user-friendly website and dedicated customer service make your shopping journey seamless and enjoyable.
+                                    Indulge in the luxury of affordable sarees at Budget Sarees – because looking fabulous shouldn't be a luxury reserved for a select few.
+                                    Embrace tradition, celebrate style, and redefine your budget-friendly fashion with us.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+
+    /// <summary>
+    /// Loading status of sign in
+    /// </summary>
+    private bool _loadingSignin;
+
+    /// <summary>
+    /// Validation message
+    /// </summary>
+    private string[] _validationMessage { get; set; } = [];
+
+    /// <summary>
+    /// Signin view model
+    /// </summary>
+    private SigninVm _signinVm { get; set; } = new();
+
+    /// <summary>
+    /// Valid submit event
+    /// </summary>
+    /// <returns></returns>
+    private async Task OnValidSubmit()
+    {
+        _loadingSignin = true;
+        _validationMessage = [];
+        try
+        {
+            await _accountService.Signin(_signinVm);
+            _navigationManager.NavigateTo("/", true);
+            StateHasChanged();
+        }
+        catch (BusinessException bex)
+        {
+            _validationMessage = bex.Message;
+            _loadingSignin = false;
+        }
+    }
+}

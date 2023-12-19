@@ -1,0 +1,83 @@
+﻿@layout ComponentBase
+@using Bs.BusinessCentral.Admin.Web.Helpers
+@using Bs.BusinessCentral.Admin.Web.Services.SessionService
+@inject ISessionSrv _sessionService
+@inject NavigationManager _navigationManager
+@inject BsStateProvider _authenticationStateProvider
+
+<nav class="navbar navbar-expand-lg bg-body-tertiary" style="box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/" style="font-size: 20px;">🅱🆄🅳🅶🅴🆃 🆂🅰🆁🅴🅴🆂</a>
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 flex-grow-1 justify-content-center">
+                <li class="nav-item" style="padding:0px;">
+                    <a class="nav-link active" aria-current="page" href="/masters/product-type" style="color: gray; font-size: 16px;">Product type</a>
+                </li>
+            </ul>
+            <ul style="margin-bottom: 0!important">
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="dropdown">
+                                    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Hi, @username
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" @onclick="()=> Signout()">Signout</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </Authorized>
+                    <NotAuthorized>
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <a class="btn btn-light btn-outline-primary" href="/signin">Login</a>
+                                <a class="btn btn-primary" href="/signup">Join</a>
+                            </div>
+                        </div>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+@code {
+
+    /// <summary>
+    /// User name
+    /// </summary>
+    string username = string.Empty;
+
+    /// <summary>
+    /// Page initialized event
+    /// </summary>
+    /// <returns></returns>
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        username = await _authenticationStateProvider.GetUserLabelName();
+    }
+
+    /// <summary>
+    /// Signout
+    /// </summary>
+    /// <returns></returns>
+    private async Task Signout()
+    {
+        await _sessionService.SignoutAsync();
+        _navigationManager.NavigateTo("/signin", true);
+    }
+}
